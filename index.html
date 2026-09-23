@@ -41,4 +41,4 @@ document.querySelector("#capture").onclick=()=>{document.body.classList.toggle("
 document.querySelector("#copy").onclick=async()=>{let s="CUDROX · Nivel "+data.level+"\nGemas: "+document.querySelector("#gemGrand").textContent+"\nRunas: "+document.querySelector("#runeGrand").textContent+"\n"+runeNames.filter(r=>n(data.runes[r])).map(r=>r+" ×"+data.runes[r]).join(", ");try{await navigator.clipboard.writeText(s);alert("Resumen copiado")}catch(e){alert(s)}};
 document.querySelector("#reset").onclick=()=>{if(confirm("¿Restablecer al inventario inicial cargado?")){localStorage.removeItem(KEY);location.reload()}};
 document.querySelector("#level").value=data.level;document.querySelector("#today").textContent=new Intl.DateTimeFormat("es-CA",{dateStyle:"medium"}).format(new Date());renderGems();renderRunes();
-</script></body></html>
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));}\n</script></body></html>
