@@ -1,5 +1,44 @@
 <!doctype html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CUDROX</title></head>
-<body><h1>CUDROX</h1><p>Conexión GitHub verificada. Aplicación en preparación.</p></body>
-</html>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#120f0b"><title>CUDROX · Inventario</title>
+<style>
+:root{--bg:#0d0c0a;--panel:#17140f;--line:#4b3a22;--gold:#d7b56d;--text:#eee6d6;--muted:#a99d88;--red:#7d241e}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#241b10 0,#0d0c0a 48%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+main{max-width:920px;margin:auto;padding:18px 12px 60px}.hero{text-align:center;border-bottom:1px solid var(--line);padding:8px 0 14px}.hero h1{margin:0;color:var(--gold);letter-spacing:.18em;font-family:Georgia,serif;font-size:34px}.meta{display:flex;justify-content:center;gap:12px;align-items:center;color:var(--muted);font-size:13px;margin-top:7px}.meta input{width:58px;background:#0d0c0a;color:var(--gold);border:1px solid var(--line);border-radius:7px;padding:5px;text-align:center}
+.tabs{display:flex;gap:8px;margin:16px 0}.tab{flex:1;padding:11px;border:1px solid var(--line);background:#17140f;color:var(--muted);border-radius:9px;font-weight:800}.tab.active{color:#160f08;background:var(--gold)}
+.panel{display:none}.panel.active{display:block}.card{background:rgba(23,20,15,.94);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 8px 28px #0008}
+h2{font:700 20px Georgia,serif;color:var(--gold);margin:2px 0 12px}.scroll{overflow-x:auto}.gems{width:100%;border-collapse:collapse;min-width:650px}.gems th,.gems td{border-bottom:1px solid #33291d;padding:7px 5px;text-align:center}.gems th{font-size:11px;color:var(--muted);text-transform:uppercase}.gems td:first-child,.gems th:first-child{text-align:left;font-weight:700;position:sticky;left:0;background:#17140f}.num{width:54px;padding:8px 3px;text-align:center;background:#0e0d0a;border:1px solid #5b472a;color:var(--text);border-radius:7px;font-size:16px}.total{color:var(--gold);font-weight:800}.grand{display:flex;justify-content:space-between;padding:12px 5px 2px;font-weight:800}.grand b{color:var(--gold);font-size:20px}
+.runes{display:grid;grid-template-columns:repeat(auto-fit,minmax(94px,1fr));gap:8px}.rune{border:1px solid #493820;border-radius:9px;padding:8px;text-align:center;background:#100f0c}.rune label{display:block;color:var(--gold);font:700 16px Georgia,serif;margin-bottom:5px}.rune input{width:62px}
+.words{display:grid;gap:7px;margin-top:12px}.word{display:flex;justify-content:space-between;gap:8px;padding:9px;border:1px solid #382d20;border-radius:8px}.ready{color:#91c78b}.missing{color:#d59b82}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button.action{background:#251d12;color:var(--text);border:1px solid var(--line);padding:9px 12px;border-radius:8px}.note{font-size:12px;color:var(--muted);line-height:1.45}
+.capture .tabs,.capture #copy,.capture #reset,.capture .note{display:none}.capture main{max-width:100%;padding:8px}.capture .card{box-shadow:none}.capture #capture{position:fixed;right:10px;bottom:10px;z-index:5;opacity:.88}
+@media(max-width:600px){main{padding:12px 8px 50px}.hero h1{font-size:28px}.card{padding:9px}.gems{min-width:590px}.num{width:48px}}
+</style></head>
+<body><main>
+<header class="hero"><h1>CUDROX</h1><div class="meta"><span>Druida · Nivel</span><input id="level" type="number" inputmode="numeric" value="28"><span id="today"></span></div></header>
+<div class="tabs"><button class="tab active" data-tab="gemp">GEMAS</button><button class="tab" data-tab="runep">RUNAS</button></div>
+<section id="gemp" class="panel active"><div class="card"><h2>Inventario de gemas</h2><div class="scroll"><table class="gems"><thead><tr><th>Gema</th><th>Mellada</th><th>Imperfecta</th><th>Normal</th><th>Impecable</th><th>Perfecta</th><th>Total</th></tr></thead><tbody id="gemBody"></tbody></table></div><div class="grand"><span>Total de gemas</span><b id="gemGrand">0</b></div><p class="note">Regla del Cubo: 3 gemas de la misma calidad → 1 de la calidad siguiente.</p></div></section>
+<section id="runep" class="panel"><div class="card"><h2>Inventario de runas</h2><div class="runes" id="runes"></div><div class="grand"><span>Total de runas</span><b id="runeGrand">0</b></div></div><div class="card"><h2>Proyectos rúnicos</h2><div class="words" id="words"></div></div></section>
+<div class="toolbar"><button class="action" id="capture">Modo captura</button><button class="action" id="copy">Copiar resumen</button><button class="action" id="reset">Restablecer</button></div>
+</main>
+<script>
+const gems=["Diamante","Esmeralda","Rubí","Topacio","Amatista","Zafiro","Cráneo"], qualities=["Mellada","Imperfecta","Normal","Impecable","Perfecta"];
+const initialGems=[[1,2,2,1,0],[2,2,1,1,0],[1,1,1,1,0],[1,1,1,1,0],[2,2,1,1,0],[1,2,1,1,0],[1,2,2,1,0]];
+const runeNames=["El","Eld","Tir","Nef","Eth","Ith","Tal","Ral","Ort","Thul","Amn","Sol","Shael","Dol","Hel","Io","Lum","Ko","Fal","Lem","Pul","Um","Mal","Ist","Gul","Vex","Ohm","Lo","Sur","Ber","Jah","Cham","Zod"];
+const initialRunes={El:5,Eld:3,Tir:5,Nef:2,Eth:4,Ith:4,Tal:2,Ral:2,Ort:1};
+const projects=[["Lore","Ort + Sol"],["Edge","Tir + Tal + Amn"],["Spirit","Tal + Thul + Ort + Amn"],["Rhyme","Shael + Eth"],["Insight","Ral + Tir + Tal + Sol"],["Wealth","Lem + Ko + Tir"]];
+const KEY="cudrox-inventory-v2";
+let saved=JSON.parse(localStorage.getItem(KEY)||"{}"); let data={gems:saved.gems||initialGems,runes:{...initialRunes,...(saved.runes||{})},level:saved.level||28};
+const n=v=>Math.max(0,parseInt(v)||0); function save(){data.level=n(document.querySelector("#level").value)||28;localStorage.setItem(KEY,JSON.stringify(data))}
+function renderGems(){let b=document.querySelector("#gemBody");b.innerHTML="";gems.forEach((g,i)=>{let tr=document.createElement("tr");tr.innerHTML="<td>"+g+"</td>"+qualities.map((q,j)=>'<td><input class="num gi" inputmode="numeric" type="number" min="0" data-i="'+i+'" data-j="'+j+'" value="'+data.gems[i][j]+'"></td>').join("")+'<td class="total" id="gt'+i+'"></td>';b.appendChild(tr)});calcGems()}
+function calcGems(){let grand=0;gems.forEach((_,i)=>{let t=data.gems[i].reduce((a,b)=>a+n(b),0);grand+=t;document.querySelector("#gt"+i).textContent=t});document.querySelector("#gemGrand").textContent=grand}
+function renderRunes(){let el=document.querySelector("#runes");el.innerHTML="";runeNames.forEach(r=>el.insertAdjacentHTML("beforeend",'<div class="rune"><label>'+r+'</label><input class="num ri" inputmode="numeric" type="number" min="0" data-r="'+r+'" value="'+(data.runes[r]||0)+'"></div>'));calcRunes()}
+function calcRunes(){document.querySelector("#runeGrand").textContent=runeNames.reduce((a,r)=>a+n(data.runes[r]),0);let w=document.querySelector("#words");w.innerHTML="";projects.forEach(([name,seq])=>{let rs=seq.split(" + ");let miss=rs.filter(r=>n(data.runes[r])<rs.filter(x=>x===r).length);w.insertAdjacentHTML("beforeend",'<div class="word"><b>'+name+'</b><span class="'+(miss.length?"missing":"ready")+'">'+(miss.length?"Falta: "+[...new Set(miss)].join(", "):"LISTA ✓")+' · '+seq+'</span></div>')})}
+document.addEventListener("input",e=>{if(e.target.classList.contains("gi")){data.gems[+e.target.dataset.i][+e.target.dataset.j]=n(e.target.value);calcGems();save()}if(e.target.classList.contains("ri")){data.runes[e.target.dataset.r]=n(e.target.value);calcRunes();save()}if(e.target.id==="level")save()});
+document.querySelectorAll(".tab").forEach(x=>x.onclick=()=>{document.querySelectorAll(".tab,.panel").forEach(y=>y.classList.remove("active"));x.classList.add("active");document.querySelector("#"+x.dataset.tab).classList.add("active")});
+document.querySelector("#capture").onclick=()=>{document.body.classList.toggle("capture");document.querySelector("#capture").textContent=document.body.classList.contains("capture")?"Volver a editar":"Modo captura"};
+document.querySelector("#copy").onclick=async()=>{let s="CUDROX · Nivel "+data.level+"\nGemas: "+document.querySelector("#gemGrand").textContent+"\nRunas: "+document.querySelector("#runeGrand").textContent+"\n"+runeNames.filter(r=>n(data.runes[r])).map(r=>r+" ×"+data.runes[r]).join(", ");try{await navigator.clipboard.writeText(s);alert("Resumen copiado")}catch(e){alert(s)}};
+document.querySelector("#reset").onclick=()=>{if(confirm("¿Restablecer al inventario inicial cargado?")){localStorage.removeItem(KEY);location.reload()}};
+document.querySelector("#level").value=data.level;document.querySelector("#today").textContent=new Intl.DateTimeFormat("es-CA",{dateStyle:"medium"}).format(new Date());renderGems();renderRunes();
+</script></body></html>
